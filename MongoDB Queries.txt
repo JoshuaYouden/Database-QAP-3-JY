@@ -1,0 +1,32 @@
+1. use DB_QAP_3
+db.createCollection('books')
+
+2. db.books.insertMany([
+{
+title: "The Hobbit",
+author: "J.R.R Toiken",
+genre: "Fantasy",
+year: 1937
+},
+  {
+title: "To Kill a Mockingbird",
+author: "Harper Lee",
+genre: "Fiction",
+yea: 1960
+}, 
+  {
+title: "1984",
+author: "George Orwell",
+genre: "Dystopian",
+year: 1949
+}])
+
+
+3A. db.books.find({}, { title: 1, _id: 0 });
+{}
+
+B. db.books.find({author: "J.R.R Toiken"});
+
+C. db.books.updateOne({tltle: "1984"}, {$set: { genre: "Science Fiction" }})
+
+D. db.books.deleteOne({name: "The Hobbit"})
