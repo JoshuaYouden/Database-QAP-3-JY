@@ -13,27 +13,30 @@ const pool = new Pool({
   port: 5432,
 });
 
-async function createTable() {
-  const query = await pool.query(`
+(async () => {
+  try {
+    await pool.query(`
         CREATE TABLE IF NOT EXISTS tasks (
             id SERIAL PRIMARY KEY,
             description TEXT NOT NULL,
             status TEXT NOT NULL
         )
-    `);
-}
+      `);
+    console.log("Database table initialized.");
+  } catch (error) {
+    console.error("Error initializing database table:", error);
+  }
+})();
 
 // GET /tasks - Get all tasks
 app.get("/tasks", async (req, res) => {
-  app.get("/tasks", async (req, res) => {
-    try {
-      const result = await pool.query("SELECT * FROM tasks");
-      res.json(result.rows);
-    } catch (error) {
-      console.error("Error fetching tasks:", error);
-      res.status(500).json({ error: "Internal Server Error" });
-    }
-  });
+  try {
+    const result = await pool.query("SELECT * FROM tasks");
+    res.json(result.rows);
+  } catch (error) {
+    console.error("Error fetching tasks:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
 });
 
 // POST /tasks - Add a new task
@@ -61,8 +64,8 @@ app.put("/tasks/:id", async (request, response) => {
   const taskId = parseInt(request.params.id, 10);
   const { status } = request.body;
 
-  if (!task) {
-    return response.status(404).json({ error: "Task not found" });
+  if (!status) {
+    return response.status(400).json({ error: "Status is required" });
   }
 
   try {
