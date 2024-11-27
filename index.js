@@ -23,63 +23,37 @@ async function createTable() {
     `);
 }
 
-async function addTask(task) {
-  const query = "INSERT INTO tasks (description, status) VALUES ($1, $2)";
-  const values = [task.description, task.status];
-  const result = await pool.query(query, [task]);
-  console.log(`Added task: ${response.rows[0].task}`);
-}
-
-async function getTasks() {
-  const query = "SELECT * FROM tasks";
-  const result = await pool.query(query);
-  if (!result.rows.length) {
-    console.log("No tasks found");
-    return;
-  }
-  response.rows.forEach((task) => {
-    console.log(
-      `ID: ${task.id}, Description: ${task.description}, Status: ${task.status}`
-    );
-  });
-}
-
-async function updateTask(id) {
-  const query = "UPDATE tasks SET status = 'completed' WHERE id = $1";
-  const result = await pool.query(query, [id]);
-  if (result.rowCount > 0) {
-    console.log(`Updated task ${id} to completed`);
-  } else {
-    console.log(`Task ${id} not found`);
-  }
-}
-
-async function deleteTask(id) {
-  const query = "DELETE FROM tasks WHERE id = $1";
-  const result = await pool.query(query, [id]);
-  if (result.rowCount > 0) {
-    console.log(`Deleted task ${id}`);
-  } else {
-    console.log(`Task ${id} not found`);
-  }
-}
-
 // GET /tasks - Get all tasks
-app.get("/tasks", (req, res) => {
-  res.json(tasks);
+app.get("/tasks", async (req, res) => {
+  app.get("/tasks", async (req, res) => {
+    try {
+      const result = await pool.query("SELECT * FROM tasks");
+      res.json(result.rows);
+    } catch (error) {
+      console.error("Error fetching tasks:", error);
+      res.status(500).json({ error: "Internal Server Error" });
+    }
+  });
 });
 
 // POST /tasks - Add a new task
-app.post("/tasks", (request, response) => {
-  const { id, description, status } = request.body;
-  if (!id || !description || !status) {
+app.post("/tasks", async (request, response) => {
+  const { description, status } = request.body;
+  if (!description || !status) {
     return response
       .status(400)
-      .json({ error: "All fields (id, description, status) are required" });
+      .json({ error: "Description and status fields are required" });
   }
-
-  tasks.push({ id, description, status });
-  response.status(201).json({ message: "Task added successfully" });
+  try {
+    const result = await pool.query(
+      "INSERT INTO tasks (description, status) VALUES ($1, $2) RETURNING *",
+      [description, status]
+    );
+    response.status(201).json({ message: "Task added successfully" });
+  } catch (error) {
+    console.error("Error occurred while adding task:", error);
+    response.status(500).json({ error: "Internal Server Error" });
+  }
 });
 
 // PUT /tasks/:id - Update a task's status
