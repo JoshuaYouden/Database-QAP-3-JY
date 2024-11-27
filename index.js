@@ -26,7 +26,42 @@ async function createTable() {
 async function addTask(task) {
   const query = "INSERT INTO tasks (description, status) VALUES ($1, $2)";
   const values = [task.description, task.status];
-  const result = await pool.query(query, values);
+  const result = await pool.query(query, [task]);
+  console.log(`Added task: ${response.rows[0].task}`);
+}
+
+async function getTasks() {
+  const query = "SELECT * FROM tasks";
+  const result = await pool.query(query);
+  if (!result.rows.length) {
+    console.log("No tasks found");
+    return;
+  }
+  response.rows.forEach((task) => {
+    console.log(
+      `ID: ${task.id}, Description: ${task.description}, Status: ${task.status}`
+    );
+  });
+}
+
+async function updateTask(id) {
+  const query = "UPDATE tasks SET status = 'completed' WHERE id = $1";
+  const result = await pool.query(query, [id]);
+  if (result.rowCount > 0) {
+    console.log(`Updated task ${id} to completed`);
+  } else {
+    console.log(`Task ${id} not found`);
+  }
+}
+
+async function deleteTask(id) {
+  const query = "DELETE FROM tasks WHERE id = $1";
+  const result = await pool.query(query, [id]);
+  if (result.rowCount > 0) {
+    console.log(`Deleted task ${id}`);
+  } else {
+    console.log(`Task ${id} not found`);
+  }
 }
 
 // GET /tasks - Get all tasks
